@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/Test_tf_speed">
+        <file>Resources/Current.bmp</file>
+        <file>Resources/Current_old.bmp</file>
+        <file>Resources/Identified.bmp</file>
+        <file>Resources/Init.bmp</file>
+        <file>Resources/Reviewed.bmp</file>
+        <file>Resources/Scanned.bmp</file>
+        <file>Resources/slide.jpg</file>
+    </qresource>
+</RCC>

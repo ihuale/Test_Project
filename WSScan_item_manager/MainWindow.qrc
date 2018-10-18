@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/WSScan_item_manager">
+        <file>Resources/icon_test.ico</file>
+        <file>Resources/next.png</file>
+        <file>Resources/zoomin.png</file>
+        <file>Resources/zoomout.png</file>
+    </qresource>
+</RCC>

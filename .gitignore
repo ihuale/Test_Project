@@ -1,0 +1,15 @@
+# cutomer rules
+# files
+*.sln
+*.db
+*.VC.VC.opendb
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# dirs
+.vs/
+x64/
+*/x64/
+Debug/
+Release/
