@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'WSScan_ImageView.ui'
+** Form generated from reading UI file 'WSScanMW.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.10.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef UI_WSSCAN_IMAGEVIEW_H
-#define UI_WSSCAN_IMAGEVIEW_H
+#ifndef UI_WSSCANMW_H
+#define UI_WSSCANMW_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
@@ -22,7 +22,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_WSScan_ImageViewClass
+class Ui_WSScanMW
 {
 public:
     QMenuBar *menuBar;
@@ -61,9 +61,9 @@ public:
 };
 
 namespace Ui {
-    class WSScan_ImageViewClass: public Ui_WSScan_ImageViewClass {};
+    class WSScanMW: public Ui_WSScanMW {};
 } // namespace Ui
 
 QT_END_NAMESPACE
 
-#endif // UI_WSSCAN_IMAGEVIEW_H
+#endif // UI_WSSCANMW_H

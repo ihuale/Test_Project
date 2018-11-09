@@ -49,11 +49,11 @@ TileManager::TileManager(OpenSlideImageSP img,
 
 TileManager::~TileManager()
 {
-	qDebug() << "TileManager: ~TileManager() 1";
+	qDebug() << "[TileManager] ~TileManager() 1";
 	m_thread = NULL;
 	m_cache = NULL;
 	m_scene = NULL;
-	qDebug() << "TileManager: ~TileManager() 1";
+	qDebug() << "[TileManager] ~TileManager() 1";
 }
 
 void TileManager::loadTilesForFieldOfView(QRectF FOV, int currentLevel)

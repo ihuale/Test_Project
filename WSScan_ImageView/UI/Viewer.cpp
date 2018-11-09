@@ -66,9 +66,9 @@ Viewer::Viewer(QWidget *parent) :
 
 Viewer::~Viewer()
 {
-	qDebug() << "Viewer: ~Viewer() 0";
+	qDebug() << "[Viewer] ~Viewer() 0";
 	close();
-	qDebug() << "Viewer: ~Viewer() 1";
+	qDebug() << "[Viewer] ~Viewer() 1";
 }
 
 void Viewer::initialize(OpenSlideImageSP img)
@@ -79,9 +79,8 @@ void Viewer::initialize(OpenSlideImageSP img)
 	if (m_tileManager) {
 		m_tileManager->clear();
 	}
-	m_tileManager = new TileManager(m_img, this);
-	m_tileManager->m_tileSize = 512.;
-	double tileSize = m_tileManager->m_tileSize;
+	
+	double tileSize = 512;
 	lastLevel = img->m_levels - 1;
 	for (int i = lastLevel; i >= 0; --i) {
 		std::vector<unsigned long long> lastLevelDimensions = img->m_dims[i];
@@ -94,6 +93,7 @@ void Viewer::initialize(OpenSlideImageSP img)
 	}
 
 	m_tileManager = new TileManager(m_img, this);//tileSize, lastLevel,
+	m_tileManager->m_tileSize = tileSize;
 	setMouseTracking(true);
 	
 	oldLevel = img->m_currentLevel;

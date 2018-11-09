@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/WSScan_ImageView">
+        <file>Resources/next.png</file>
+    </qresource>
+</RCC>

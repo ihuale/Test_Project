@@ -10,7 +10,8 @@ TileGraphicsItemCache::~TileGraphicsItemCache() {
 }
 
 void TileGraphicsItemCache::evict() {
-	if (m_cache.empty()) return;
+	if (m_cache.empty()) 
+		return;
 	std::map<std::string, TileGraphicsItem*>::iterator removeIt = m_cache.begin();
 	time_t lastTime = m_cache.begin()->second->m_usedTime;
 	for (auto iter = m_cache.begin(); iter != m_cache.end(); ++ iter) {
