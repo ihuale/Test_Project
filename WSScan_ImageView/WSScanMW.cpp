@@ -24,14 +24,14 @@ WSScanMW::WSScanMW(QWidget *parent)
 	list_file.push_back("E:/Pathology/1104563893255.mrxs");*/
 	//std::string filename = "E:/Pathology/WSScan/2018-11-01-211611-262/Images/2018-11-01-211611-262.svs";
 	std::string filename = "E:/Pathology/1104563893255.mrxs";
-	//m_img = std::make_shared<OpenSlideImage>();
-	//m_img->initializeType(filename);
+	m_img = std::make_shared<OpenSlideImage>();
+	m_img->initializeType(filename);
 
 	m_viewer = new Viewer(this);
-	//m_viewer->initialize(m_img);
+	m_viewer->initialize(m_img);
 
 	loadDirFiles("E:/Pathology/original_data/20180111_1848000", "*.mrxs");
-	//onActionChangeImage();
+	onActionChangeImage();
 }
 
 WSScanMW::~WSScanMW()

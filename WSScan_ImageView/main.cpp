@@ -22,6 +22,6 @@ int main(int argc, char *argv[])
 	w.show();
 	//return a.exec();
 	int tem = a.exec();
-	_CrtDumpMemoryLeaks();
+	//_CrtDumpMemoryLeaks();
 	return tem;
 }

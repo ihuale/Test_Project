@@ -6,6 +6,7 @@
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.vspx
 
 # dirs
 .vs/
@@ -13,3 +14,4 @@ x64/
 */x64/
 Debug/
 Release/
+packages/
