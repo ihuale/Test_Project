@@ -34,16 +34,18 @@ ImageTile getNewNameNum(string arg_current_name,int arg_framex, int arg_framey) 
 	//get new name
 	int row = 0, col = 0;
 
- 	if (0 != ((num / arg_framey) % 2)) {
-		//odd row
-		col = ((num%arg_framey) == 0) ? 0 : (num % arg_framey);
-	}
-	else {
-		//even row
-		col = arg_framey - (num % arg_framey) - 1;
-	}
-	row = arg_framex - (num / arg_framey) - 1;
+ //	if (0 != ((num / arg_framey) % 2)) {
+	//	//odd row
+	//	col = ((num%arg_framey) == 0) ? 0 : (num % arg_framey);
+	//}
+	//else {
+	//	//even row
+	//	col = arg_framey - (num % arg_framey) - 1;
+	//}
+	//row = arg_framex - (num / arg_framey) - 1;
 	//int newNum = col * arg_framex + row;
+	col = arg_framex - num / arg_framey - 1;
+	row = arg_framey - num % arg_framey - 1;
 
 	return ImageTile{ col,row };
 };
@@ -86,6 +88,19 @@ void renameFile(vector<std::string>* arg_files, int arg_framex, int arg_framey) 
 
 int main(int argc,char **argv)
 {
+	////for test
+	//cv::Mat arr(4, 4, CV_8UC3, cv::Scalar(255, 255, 255));
+	//std::cout << "[main] before data:" << std::endl;
+	//std::cout << arr << std::endl;
+	//unsigned char arry_cp[2][4] = { {1,2,3,4}, {5,6,7,8} };
+	//cv::Mat arry2(2, 4, CV_8UC3, cv::Scalar(125, 125, 125));
+
+	//memcpy(arr.data+ (2 * 4 * 3 + 1), arry2.data, 2 * 4 * 3);
+	//
+	//std::cout << std::endl << "[main] after data:" << std::endl;
+	//std::cout << arr << std::endl;
+
+
 	dir_currentDir = argv[0];
 	dir_currentDir.replace(dir_currentDir.end() - 13, dir_currentDir.end(), "");
 	printf("[Main] current path is: %s\n", dir_currentDir.c_str());

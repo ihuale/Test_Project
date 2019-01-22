@@ -148,7 +148,7 @@ void SlideWriter::readJpgToMat(int arg_tile_row)
 	//read all arg_tile_tile_j.jpg to tif
 	for (int j = 0; j < mframeNumy; ++j) {
 		//read image first
-		string imgName = mdir + "\\Images\\" + to_string(j) + "_" + to_string(arg_tile_row) + ".jpg";
+		string imgName = mdir + "\\Images\\" + to_string(arg_tile_row) + "_" + to_string(j) + ".jpg";
 		auto img = cv::imread(imgName);
 		if (img.empty()) {
 			printf("[SildeWriter] read img failed: %s  ID: %d\n", imgName.c_str(), std::this_thread::get_id());
@@ -234,4 +234,46 @@ void SlideWriter::save()
 		//mMatLines[i]->release();
 	}
 	mMatTotal.release();
+}
+
+bool SlideWriter::vconcat(cv::Mat* src, cv::Mat* dest,long arg_start_col)
+{
+	//src stitched under dest
+	if (src == NULL || dest == NULL) {
+		printf("[SlideWriter] vconcat error: src || dest is NULL!!!\n");
+		return false;
+	}
+	if (src->rows != dest->rows) {
+		printf("[SlideWriter] vconcat error: src.rows(%d) != dest.rows(%d)\n", src->rows, dest->rows);
+		return false;
+	}
+
+	//get data
+	auto pos = arg_start_col * dest->rows * 3 + 1;//TODO  overflow???
+	long cpsize = static_cast<long>(src->rows)*static_cast<long>(src->cols) * 3;
+	memcpy(dest->data + pos, src->data, cpsize);
+
+	return true;
+}
+
+bool SlideWriter::hconcat(cv::Mat * src, cv::Mat * dest, int arg_start_row)
+{
+	//src on the right side of dest
+	if (src == NULL || dest == NULL) {
+		printf("[SlideWriter] hconcat error: src || dest is NULL!!!\n");
+		return false;
+	}
+	if (src->cols != dest->cols) {
+		printf("[SlideWriter] hconcat error: src.cols(%d) != dest.cols(%d)\n", src->cols, dest->cols);
+		return false;
+	}
+
+	for (int i = 0; (i + arg_start_row) < dest->rows; ++i) {
+		for (int j = 0; j < src->cols; ++j) {
+			dest->at<unsigned char>(i + arg_start_row, j) = src->at<unsigned char>(i, j);
+		}
+	}
+
+
+	return true;
 }

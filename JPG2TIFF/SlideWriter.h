@@ -43,6 +43,12 @@ private:
 	void readJpgToMat(int arg_tile_row);
 	void save();
 
+	//src stitched under dest
+	static bool vconcat(cv::Mat* src, cv::Mat* dest, long arg_start_col);
+
+	//src on the right side of dest
+	static bool hconcat(cv::Mat* src, cv::Mat* dest, int arg_start_row);
+
 private:
 	int mframeNumx, mframeNumy;
 	int mimageWidth, mimageHeight;
