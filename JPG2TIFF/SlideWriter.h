@@ -6,6 +6,7 @@
 #include <thread>
 #include <mutex>
 #define NOMINMAX
+#define G_OS_WIN32
 #include <windows.h>
 #include <opencv2/opencv.hpp>
 
@@ -31,12 +32,13 @@ class SlideWriter
 	//creat the pyramid-tiff,
 	//use all the image from arg_dir
 public:
-	SlideWriter(string arg_dir, IniFile* arg_ini);
+	SlideWriter();
 	~SlideWriter();
 
 public:
 	static bool getFiles(string arg_dir, vector<string> &arg_files) ;
 
+	bool config(string arg_dir, IniFile* arg_ini);
 private:
 	//function
 	void splice();
@@ -44,32 +46,26 @@ private:
 	void save();
 
 	//src stitched under dest
-	static bool vconcat(cv::Mat* src, cv::Mat* dest, long arg_start_col);
+	static bool vconcat(cv::Mat* src, cv::Mat* dest, long arg_start_row);
 
 	//src on the right side of dest
-	static bool hconcat(cv::Mat* src, cv::Mat* dest, int arg_start_row);
+	static bool hconcat(cv::Mat* src, cv::Mat* dest, int arg_start_col);
 
-private:
+public:
 	int mframeNumx, mframeNumy;
 	int mimageWidth, mimageHeight;
 	int moffsetX, moffsetY;
 	int mquality;
 
-	//tiff attributes
-	int mtileWidth, mtileHeight;
-	unsigned int mactualWidth, mactualHeight, mbitCount;
-	int msamplesPerPixel;
-
 	string mdir;
 	string mfilename;
-
-	std::ostringstream merrMsg;
-
-private:
-	std::vector<cv::Mat> mMatLines;
+	
 	cv::Mat mMatTotal;
 
+private:
 	//for multi thread
 	int mColRemaining, mRowRemaining;
 	int mNumWorking;//working thread
+
+	std::vector<cv::Mat> mMatLines;
 };

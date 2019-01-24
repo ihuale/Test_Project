@@ -4,32 +4,12 @@
 #include <algorithm>
 #include <io.h>//_finddata_t
 #include <fstream>//_finddata_t
-
+#include <sstream >//for ostringstream
 
 #include "IniFile.h"
 
-
-SlideWriter::SlideWriter(string arg_dir, IniFile *arg_ini)
+SlideWriter::SlideWriter()
 {
-	mdir = arg_dir;
-	mfilename = arg_dir + "\\slide.jpg";
-	mframeNumx = arg_ini->getValueInt("ScanRect", "XFrameNum");
-	mframeNumy = arg_ini->getValueInt("ScanRect", "YFrameNum");
-	mimageWidth = arg_ini->getValueInt("ScanRect", "ImageWidth");
-	mimageHeight = arg_ini->getValueInt("ScanRect", "ImageHeight");
-	moffsetX = arg_ini->getValueInt("ScanRect", "XOffset");
-	moffsetY = arg_ini->getValueInt("ScanRect", "YOffset");
-	mquality = (arg_ini->getValueInt("ScanRect", "Quality") > 50) ? (arg_ini->getValueInt("ScanRect", "Quality")) : 50;
-
-	mMatLines.resize(mframeNumx);
-	mRowRemaining = mframeNumx;
-	mColRemaining = mframeNumy;
-	mNumWorking = 0;
-
-	printf("[SlideWriter]\ninput dir: %s\nframeNumX: %d    frameNumY: %d\noffsetX: %d    offsetY: %d\njpeg quality: %d\n", mdir.c_str(), mframeNumx, mframeNumy, moffsetX, moffsetY, mquality);
-
-	//start to splice
-	splice();
 }
 
 
@@ -67,6 +47,49 @@ bool SlideWriter::getFiles(string arg_dir, vector<string>& arg_files)
 	return true;
 }
 
+bool SlideWriter::config(string arg_dir, IniFile * arg_ini)
+{
+	mdir = arg_dir;
+	mfilename = arg_dir + "\\slide.jpg";
+	mframeNumx = arg_ini->getValueInt("ScanRect", "XFrameNum");
+	mframeNumy = arg_ini->getValueInt("ScanRect", "YFrameNum");
+	moffsetX = arg_ini->getValueInt("ScanRect", "XOffset");
+	moffsetY = arg_ini->getValueInt("ScanRect", "YOffset");
+	mquality = (arg_ini->getValueInt("ScanRect", "Quality") > 50) ? (arg_ini->getValueInt("ScanRect", "Quality")) : 50;
+	cv::Mat temImg = cv::imread(arg_dir + "\\Images\\0_0.jpg");
+	if (temImg.empty()) {
+		/*mimageWidth = arg_ini->getValueInt("ScanRect", "ImageWidth");
+		mimageHeight = arg_ini->getValueInt("ScanRect", "ImageHeight");*/
+		printf("[SlideWriter] dir files is not enough: %s", arg_dir.c_str());
+		return false;
+	}
+	else {
+		mimageWidth = temImg.cols;
+		mimageHeight = temImg.rows;
+	}
+
+	mMatLines.resize(mframeNumx);
+	mRowRemaining = mframeNumx;
+	mColRemaining = mframeNumy;
+	mNumWorking = 0;
+
+	printf("[SlideWriter]\ninput dir: %s\nframeNumX: %d    frameNumY: %d\noffsetX: %d    offsetY: %d\njpeg quality: %d\n", mdir.c_str(), mframeNumx, mframeNumy, moffsetX, moffsetY, mquality);
+
+	//start to splice
+	splice();
+
+	auto flag_savejpg = arg_ini->getValueStr("ScanRect", "SaveJpg");
+	if (strcmp(flag_savejpg.c_str(), "true") == 0) {
+		printf("[Main] start to save jpg file: %s\n", (arg_dir + "\\slide.jpg").c_str());
+		//now,all over, save the mat to jpg file
+		save();
+		arg_ini->setValue("ScanRect", "SaveJpg", "false");
+		printf("[SildeWiriter] save over!\n");
+	}
+
+	return true;
+}
+
 void SlideWriter::splice()
 {
 	if (mframeNumx*mframeNumy < 1) {
@@ -79,6 +102,26 @@ void SlideWriter::splice()
 	//first,creat tiff file
 	int totalWidth = mframeNumx * (mimageWidth -moffsetX) + moffsetX;
 	int totalHeight = mframeNumy * (mimageHeight - moffsetY) + moffsetY;
+
+	cout << "[SlideWriter] start to application memory, size is: " << totalWidth << " * " << totalHeight << " * 3, please waitting...\n";
+
+	time_t time_application_start = clock();
+	mMatTotal = cv::Mat(totalHeight, totalWidth,  CV_8UC3, cv::Scalar(255, 255, 255));
+	time_t time_application_end = clock();
+
+	cout << "[SlideWriter]application memory over, time is:  " << difftime(time_application_end, time_application_start) << " ms\n";
+
+	cout << "[SlideWriter] start to application memory, size is: " << mimageWidth - moffsetX << " * " << totalHeight << " * " << mMatLines.size() << ", please waitting...\n";
+
+	time_t time_application2_start = clock();
+	std::vector<cv::Mat>::iterator iter = mMatLines.begin();
+	for (; iter != mMatLines.end() - 1; ++iter) {
+		*iter = cv::Mat( totalHeight, mimageWidth - moffsetX, CV_8UC3, cv::Scalar(255, 255, 255));
+	}
+	*iter = cv::Mat( totalHeight, mimageWidth, CV_8UC3, cv::Scalar(255, 255, 255));
+	time_t time_application2_end = clock();
+
+	cout << "[SlideWriter] application memory over, time is:  " << difftime(time_application2_end, time_application2_start) << " ms\n";
 	
 	//TODO
 	//use multi thread read data
@@ -101,6 +144,7 @@ void SlideWriter::splice()
 			if (mNumWorking < maxWorkThreadNum) {
 				//has idle thread
 				//allow thread creation
+				//readJpgToMat(mframeNumx - mRowRemaining);
 				std::thread temThread(&SlideWriter::readJpgToMat, this, (mframeNumx - mRowRemaining));
 				temThread.detach();
 
@@ -112,10 +156,10 @@ void SlideWriter::splice()
 			mMutex.unlock();
 		}
 	}
-	//while (mNumWorking > 0) {
-	//	//waitting for all thread over
-	//	//printf("[SildeWriter] while working num: %d\n", mNumWorking);
-	//}
+	while (mNumWorking > 0) {
+		//waitting for all thread over
+		printf("[SildeWriter] while working num: %d\n", mNumWorking);
+	}
 	bool flag_wait = true;
 	while (flag_wait) {
 		if (mMutex.try_lock()) {
@@ -127,26 +171,24 @@ void SlideWriter::splice()
 	}
 	printf("[SlideWriter] all process thread over! waitting for concat......\n");
 
-	std::vector<cv::Mat>::iterator iter = mMatLines.begin();
-	mMatTotal = mMatLines[0];
-	++iter;
-	for (; iter != mMatLines.end(); ++iter) {
-		//cv::vconcat(mMatTotal, *iter, mMatTotal);
-		cv::hconcat(mMatTotal, *iter, mMatTotal);
-		iter->release();
+	int col_count = 0;
+	int current_col = mMatLines.size();
+	for (auto &iter:mMatLines) {
+		hconcat(&iter, &mMatTotal, col_count);
+		col_count += iter.cols;
+		iter.release();
+		printf("[SlideWriter] one lines copy to Mat... ramain: %d\n", --current_col);
 	}
 
-	//now,all over, save the mat to jpg file
-	save();
-
-	printf("[SildeWiriter] all over!\n");
 }
 
 void SlideWriter::readJpgToMat(int arg_tile_row)
 {
 	printf("[SlideWriter] now, get the line: %d, total is : %d  ID: %d\n", arg_tile_row, mframeNumx, std::this_thread::get_id());
+
 	//read all arg_tile_tile_j.jpg to tif
-	for (int j = 0; j < mframeNumy; ++j) {
+	int row_count = 0;
+	for (int j = 0; j < mframeNumy; ++j) {//
 		//read image first
 		string imgName = mdir + "\\Images\\" + to_string(arg_tile_row) + "_" + to_string(j) + ".jpg";
 		auto img = cv::imread(imgName);
@@ -161,23 +203,6 @@ void SlideWriter::readJpgToMat(int arg_tile_row)
 		rWidth.start = 0;
 		rHeight.start = 0;
 
-		//last col no need cut the final cols
-		//last row no need cut the final rows
-		//cv::Mat::size() return is: (height, width)
-		//row first
-		/*if (j == (mframeNumx - 1)) {
-			rWidth.end = img.size().width;
-		}
-		else {
-			rWidth.end = img.size().width - moffsetX;
-		}
-		if (arg_tile_row == (mframeNumy - 1)) {
-			rHeight.end = img.size().height;
-		}
-		else {
-			rHeight.end = img.size().height - moffsetY;
-		}*/
-		//col first
 		if (arg_tile_row == (mframeNumx - 1)) {
 			rWidth.end = img.size().width;
 		}
@@ -192,17 +217,17 @@ void SlideWriter::readJpgToMat(int arg_tile_row)
 		}
 		
 		auto mask = cv::Mat::Mat(img, rHeight, rWidth);
+		std::ostringstream ss;
+		ss << std::this_thread::get_id();
+		//cv::imwrite(ss.str() + "_mask.jpg", mask);
 		//splicing the mask to the back of mMatLine
-		mMutex.lock();
-		if (0 == j) {
-			mMatLines[arg_tile_row] = mask.clone();
-		}
-		else {
-			cv::vconcat(mMatLines[arg_tile_row], mask, mMatLines[arg_tile_row]);
-		}
+		mMutex.lock(); 
+		vconcat(&mask, &mMatLines[arg_tile_row], row_count);
+		row_count += mask.rows;
 		mMutex.unlock();
 		mask.release();
 	}
+
 	//printf("[SlideWriter] last time total mat size is: %d\n", mMatTotal.size());
 	printf("[SlideWriter] get the line: %d over.  ID: %d\n", arg_tile_row, std::this_thread::get_id());
 
@@ -233,47 +258,71 @@ void SlideWriter::save()
 		mMatLines[i].release();
 		//mMatLines[i]->release();
 	}
-	mMatTotal.release();
+	//mMatTotal.release();
 }
 
-bool SlideWriter::vconcat(cv::Mat* src, cv::Mat* dest,long arg_start_col)
+bool SlideWriter::vconcat(cv::Mat* src, cv::Mat* dest,long arg_start_row)
 {
 	//src stitched under dest
 	if (src == NULL || dest == NULL) {
 		printf("[SlideWriter] vconcat error: src || dest is NULL!!!\n");
 		return false;
 	}
-	if (src->rows != dest->rows) {
-		printf("[SlideWriter] vconcat error: src.rows(%d) != dest.rows(%d)\n", src->rows, dest->rows);
+	if (src->cols != dest->cols) {
+		printf("[SlideWriter] vconcat error: src.cols(%d) != dest.cols(%d)\n", src->cols, dest->cols);
 		return false;
 	}
 
 	//get data
-	auto pos = arg_start_col * dest->rows * 3 + 1;//TODO  overflow???
-	long cpsize = static_cast<long>(src->rows)*static_cast<long>(src->cols) * 3;
-	memcpy(dest->data + pos, src->data, cpsize);
+	//although tem_row_range is a cv::Mat,
+	//but it's pointer to origin address of dest
+	////so,we can do things at address to affect dest
+	//long long cpsize = static_cast<long long>(src->rows)*static_cast<long long>(src->cols) * 3;
+	//auto tem_row_range = dest->rowRange(arg_start_row, arg_start_row + src->rows);
+	//memcpy(tem_row_range.data, src->data, cpsize);
+	
+	int nl = src->cols * src->channels();
+	for (int i = arg_start_row; i < arg_start_row + src->rows; ++i) {
+
+		auto inData = src->ptr<uchar>(i - arg_start_row);
+		auto outData = dest->ptr<uchar>(i);
+		for (int j = 0; j < nl; ++j) {
+			*outData++ = *inData++;
+		}
+	}
 
 	return true;
 }
 
-bool SlideWriter::hconcat(cv::Mat * src, cv::Mat * dest, int arg_start_row)
+bool SlideWriter::hconcat(cv::Mat * src, cv::Mat * dest, int arg_start_col)
 {
 	//src on the right side of dest
 	if (src == NULL || dest == NULL) {
 		printf("[SlideWriter] hconcat error: src || dest is NULL!!!\n");
 		return false;
 	}
-	if (src->cols != dest->cols) {
-		printf("[SlideWriter] hconcat error: src.cols(%d) != dest.cols(%d)\n", src->cols, dest->cols);
+	if (src->rows != dest->rows) {
+		printf("[SlideWriter] hconcat error: src.rows(%d) != dest.rows(%d)\n", src->rows, dest->rows);
 		return false;
 	}
+	
+	//although tem_col_range is a cv::Mat,
+	//but it's pointer to origin address of dest
+	//so,we can do things at address to affect dest
+	/*long long cpsize = static_cast<long long>(src->rows)*static_cast<long long>(src->cols) * 3;
+	auto tem_col_range = dest->colRange(arg_start_col, arg_start_col + src->cols);
+	memcpy(tem_col_range.data, src->data, cpsize);*/
 
-	for (int i = 0; (i + arg_start_row) < dest->rows; ++i) {
-		for (int j = 0; j < src->cols; ++j) {
-			dest->at<unsigned char>(i + arg_start_row, j) = src->at<unsigned char>(i, j);
-		}
+	int nl = src->cols * src->channels();
+	long long pos = arg_start_col * src->channels();
+	for (int i = 0; i < src->rows; ++i) {
+		auto inData = src->ptr<uchar>(i);
+		auto outData = dest->ptr<uchar>(i) + pos;
+
+		for (int j = 0; j < nl; ++j) {
+			*outData++ = *inData++;
+		} 
 	}
-
 
 	return true;
 }
