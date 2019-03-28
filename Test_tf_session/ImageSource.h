@@ -1,6 +1,5 @@
 #ifndef _ImageSource
 #define _ImageSource
-
 #include <string>
 #include <vector>
 //#include "MPIEnums.h"

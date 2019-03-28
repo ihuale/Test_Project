@@ -6,7 +6,7 @@
 #include <QMutex>
 #include <QQueue>
 
-#include "types.h"
+#include "AIType.h"
 
 extern std::string path_image_read;
 extern std::string image_filter;

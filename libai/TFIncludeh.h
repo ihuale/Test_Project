@@ -29,28 +29,5 @@
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/public/session_options.h"
 
-#include <opencv2/opencv.hpp>
-
-#include <QObject>
-#include <QThread>
-#include <QQueue>
-#include <QMutex>
-#include <QDir>
-
-#include "AIType.h"
-
-extern std::string path_image_read;
-
-using tensorflow::Tensor;
 using tensorflow::Status;
-
-void test_link_two_pb();
-
-void test_eight_classifier_pb();
-
-void tenst_compare_pb();
-
-void splitBbox(std::vector<Tensor>* arg_in_list_tensor,
-	std::vector<std::vector<ImageID> > *arg_in_list_id);
-
-void writeToXML(std::vector<std::vector<BboxInfo> >* arg_in_list_bbox);
+using tensorflow::Tensor;

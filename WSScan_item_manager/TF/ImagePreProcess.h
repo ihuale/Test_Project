@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include "AIType.h"
 
 #include <vector>
 #include <QSize>
